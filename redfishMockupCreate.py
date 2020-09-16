@@ -22,22 +22,16 @@ tool_version = "1.0.5"
 tool_date = "08/08/2019"
 
 # rootservice navigation properties
-rootLinks = ["Systems", "Chassis", "Managers", "SessionService", "AccountService", "Registries",
-             "JsonSchemas", "Tasks", "EventService", "UpdateService"]
+rootLinks = ["Systems", "Chassis", "Managers", "SessionService", "AccountService"]
 # list of navigation properties for each root service nav props
 resourceLinks = {
     # rootResource: [list of sub-resources],
-    "Systems": ["Processors", "SimpleStorage", "EthernetInterfaces", "LogServices",
-                "Memory", "NetworkInterfaces", "SecureBoot", "Bios", "PCIeDevices", "MemoryDomains", "Storage"],
-    "Chassis": ["Power", "Thermal", "LogServices"],
-    "Managers": ["NetworkProtocol", "EthernetInterfaces", "SerialInterfaces", "LogServices", "VirtualMedia"],
+    "Systems": ["Processors", "EthernetInterfaces","PCIeFunctions",
+                "Memory", "NetworkInterfaces", "SecureBoot", "Bios", "PCIeDevices", "Storage"],
+    "Chassis": ["Power", "Thermal"],
+    "Managers": ["NetworkProtocol", "EthernetInterfaces", "SerialInterfaces", "VirtualMedia"],
     "SessionService": ["Sessions"],
-    "AccountService": ["Accounts", "Roles"],
-    "Registries": [],
-    "JsonSchemas": [],
-    "Tasks": ["Tasks"],
-    "EventService": ["Subscriptions"],
-    "UpdateService": []
+    "AccountService": ["Accounts", "Roles"]
 }
 
 
@@ -773,45 +767,44 @@ def addSecondLevelResource(rft, rootUrl, mockDir, sublinklist, resd, addCopyrigh
     for rlink2 in sublinklist:  # (ex Processors, Power)
         if(rlink2 in resd):
             link2 = resd[rlink2]
-            rft.printVerbose(
-                4, "        Creating sub-property: {}".format(rlink2))
-            rc, r, j, d = readResourceMkdirCreateIndxFile(
-                rft, rootUrl, mockDir, link2, addCopyright, addHeaders, addTime, jsonData=True)
-            if(rc != 0):
-                rft.printErr(
-                    "ERROR: got error reading 2nd level resource--continuing. link: {}".format(link2))
-                return(rc, r, j, d)
-            resd2 = d
-            # if collection, then get its members
-            if isCollection(resd2) is True:  # ex Processors, get /1, /2
-                for member2 in resd2["Members"]:
-                    rft.printVerbose(
-                        4, "          Creating 2nd-level Collection member: {}".format(member2))
-                    rc, r, j, d = readResourceMkdirCreateIndxFile(
-                        rft, rootUrl, mockDir, member2, addCopyright, addHeaders, addTime, jsonData=True)
-                    resd3 = d
-                    if(rc != 0):
-                        rft.printErr(
-                            "ERROR: got error reading 2nd level collection member--continuing. link: {}".format(member2))
-                        break
-                    # if resource type is LogService, then get the entries expanded collection
-                    ns, ver, resType = rft.parseOdataType(rft, resd3)
-                    if(resType == "LogService"):
-                        if("Entries" in resd3):
-                            entriesLink = resd3["Entries"]
-                            rft.printVerbose(
-                                2, "               Creating LogService Entries (Expanded Collection): {}".format(member2))
-                            rc, r, j, d = readResourceMkdirCreateIndxFile(
-                                rft, rootUrl, mockDir, entriesLink, addCopyright, addHeaders, addTime, jsonData=True)
-                            if(rc != 0):
-                                rft.printErr(
-                                    "ERROR: got error reading logService Entries collection resource--continuing. link: {}".format(entriesLink))
+            if(isinstance(link2,list)):
+                for childLink in link2:
+                    handleSecondLevelResource(rft, rootUrl, mockDir, childLink, resd, addCopyright, addHeaders, addTime)
+            else:
+                handleSecondLevelResource(rft, rootUrl, mockDir, link2, resd, addCopyright, addHeaders, addTime)
+            
         else:
             rft.printVerbose(2, "       No sub-properties in resource: {}")
             return(0, None, False, None)
 
     return(rc, r, j, d)
 
+
+def handleSecondLevelResource(rft, rootUrl, mockDir, linkItem, resd, addCopyright, addHeaders, addTime):
+    rft.printVerbose(4, "        Creating sub-property: {}".format(linkItem))
+    rc, r, j, d = readResourceMkdirCreateIndxFile(rft, rootUrl, mockDir, linkItem, addCopyright, addHeaders, addTime, jsonData=True)
+    if(rc != 0):
+        rft.printErr("ERROR: got error reading 2nd level resource--continuing. link: {}".format(linkItem))
+        return(rc, r, j, d)
+    resd2 = d
+    # if collection, then get its members
+    if isCollection(resd2) is True:  # ex Processors, get /1, /2
+        for member2 in resd2["Members"]:
+            rft.printVerbose(4, "          Creating 2nd-level Collection member: {}".format(member2))
+            rc, r, j, d = readResourceMkdirCreateIndxFile(rft, rootUrl, mockDir, member2, addCopyright, addHeaders, addTime, jsonData=True)
+            resd3 = d
+            if(rc != 0):
+                rft.printErr("ERROR: got error reading 2nd level collection member--continuing. link: {}".format(member2))
+                break
+            # if resource type is LogService, then get the entries expanded collection
+            ns, ver, resType = rft.parseOdataType(rft, resd3)
+            if(resType == "LogService"):
+                if("Entries" in resd3):
+                    entriesLink = resd3["Entries"]
+                    rft.printVerbose(2, "               Creating LogService Entries (Expanded Collection): {}".format(member2))
+                    rc, r, j, d = readResourceMkdirCreateIndxFile(rft, rootUrl, mockDir, entriesLink, addCopyright, addHeaders, addTime, jsonData=True)
+                    if(rc != 0):
+                        rft.printErr( "ERROR: got error reading logService Entries collection resource--continuing. link: {}".format(entriesLink))        
 
 def isCollection(resource):
     if "Members" in resource:
