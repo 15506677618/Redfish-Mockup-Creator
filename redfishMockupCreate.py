@@ -22,7 +22,8 @@ tool_version = "1.0.5"
 tool_date = "08/08/2019"
 
 # rootservice navigation properties
-rootLinks = ["Systems", "Chassis", "Managers", "SessionService", "AccountService"]
+rootLinks = ["Systems", "Chassis", "Managers", "SessionService", "AccountService", "Registries",
+             "JsonSchemas", "Tasks", "EventService", "UpdateService"]
 # list of navigation properties for each root service nav props
 resourceLinks = {
     # rootResource: [list of sub-resources],
@@ -31,7 +32,12 @@ resourceLinks = {
     "Chassis": ["Power", "Thermal"],
     "Managers": ["NetworkProtocol", "EthernetInterfaces", "SerialInterfaces", "VirtualMedia"],
     "SessionService": ["Sessions"],
-    "AccountService": ["Accounts", "Roles"]
+    "AccountService": ["Accounts", "Roles"],
+    "Registries": [],
+    "JsonSchemas": [],
+    "Tasks": ["Tasks"],
+    "EventService": ["Subscriptions"],
+    "UpdateService": []
 }
 
 
