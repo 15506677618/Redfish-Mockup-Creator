@@ -23,7 +23,7 @@ tool_date = "08/08/2019"
 
 # rootservice navigation properties
 rootLinks = ["Systems", "Chassis", "Managers", "SessionService", "AccountService", "Registries",
-             "JsonSchemas", "Tasks", "EventService", "UpdateService"]
+             "JsonSchemas", "Tasks", "EventService", "UpdateService","CertificateService"]
 # list of navigation properties for each root service nav props
 resourceLinks = {
     # rootResource: [list of sub-resources],
@@ -37,8 +37,15 @@ resourceLinks = {
     "JsonSchemas": [],
     "Tasks": ["Tasks"],
     "EventService": ["Subscriptions"],
-    "UpdateService": []
+    "UpdateService": [],
+    "CertificateService":["CertificateLocations"]
 }
+
+#for such links, mkdir and create the index.json directly.
+directLinks = [
+    {"@odata.id": "/redfish/v1/schemas/registries/EventRegistry.1.0.0.json"},
+    {"@odata.id": "/redfish/v1/Managers/1/Oem/Lenovo/FoD"}
+]
 
 
 def displayUsage(rft, *argv, **kwargs):
@@ -557,6 +564,10 @@ def main(argv):
                     if(rc != 0):
                         rft.printErr(
                             "ERROR: Error processing 2nd level resource (9) --continuing")
+        
+        for dLink in directLinks:
+            readResourceMkdirCreateIndxFile(rft, rootUrl, mockDir, dLink, addCopyright, addHeaders, addTime)
+
     else:
         # Starting recursive call.
         processed = set()
