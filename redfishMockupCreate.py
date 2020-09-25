@@ -44,7 +44,8 @@ resourceLinks = {
 #for such links, mkdir and create the index.json directly.
 directLinks = [
     {"@odata.id": "/redfish/v1/schemas/registries/EventRegistry.1.0.0.json"},
-    {"@odata.id": "/redfish/v1/Managers/1/Oem/Lenovo/FoD"}
+    {"@odata.id": "/redfish/v1/Managers/1/Oem/Lenovo/FoD"},
+    {"@odata.id": "/redfish/v1/AccountService/LDAP/Certificates/1"}
 ]
 
 
