@@ -48,6 +48,10 @@ directLinks = [
     {"@odata.id": "/redfish/v1/AccountService/LDAP/Certificates/1"}
 ]
 
+skipList = [
+        '/redfish/v1/Systems/1/LogServices',
+        '/redfish/v1/Chassis/1/Oem/Lenovo/Sensors'
+]
 
 def displayUsage(rft, *argv, **kwargs):
     rft.printErr("  Usage:", noprog=True)
@@ -197,6 +201,8 @@ def main(argv):
     scrapeMetadata = False
     # Exception List required given Dell 13g iDRAC does not include odata.type with expanded Log
     exceptionList = ['iDRAC.Embedded.1/Logs/']
+
+    
 
     try:
         opts, args = getopt.gnu_getopt(argv[1:], "VhvqMSHTu:p:r:A:C:D:d:",
@@ -598,6 +604,11 @@ def recursive_call(rft, rs, rootUrl, mockDir, processed, addCopyright, addHeader
                 if link in processed:
                     rft.printVerbose(
                         1, "   Skipping already processed resource at: {}".format(link))
+                    continue
+                elif (any(link.startswith(x) for x in skipList)):
+                    processed.add(link)
+                    rft.printVerbose(
+                        1, "   Skipping resource at: {} because it is in skiplist ".format(link))
                     continue
                 else:
                     processed.add(link)
